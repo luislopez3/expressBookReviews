@@ -10,9 +10,18 @@ app.use(express.json());
 
 app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
-app.use("/customer/auth/*", function auth(req,res,next){
-//Write the authenication mechanism here
-});
+app.use("/customer/auth/*", function auth(req, res, next) {
+    const token = req.headers['authorization'];
+    if (!token) return res.status(403).send("Access Denied: No Token Provided!");
+  
+    try {
+      const decoded = jwt.verify(token, "fingerprint_customer");
+      req.user = decoded; // Pass the decoded token to the next middleware
+      next();
+    } catch (err) {
+      return res.status(401).send("Invalid Token");
+    }
+  });
  
 const PORT =5000;
 
